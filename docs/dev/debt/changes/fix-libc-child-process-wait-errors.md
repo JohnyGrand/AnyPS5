@@ -1,0 +1,5 @@
+# libc
+
+## change [child process registry]
+
+- [child process registry](../../../core/libs/prx/libc/src/ChildProcesses.cpp) (libc) - tracks Windows children spawned by [libSceLibcInternal](../../../core/libs/prx/libSceLibcInternal/Spawn.cpp). Registration accepts duplicate IDs and does not validate handles. Windows wait or handle-duplication failures throw `std::system_error` without reaping or changing outputs. Blocking waiters own temporary handle duplicates so another waiter can reap the child without closing a pending wait's handles, as required by [WaitForMultipleObjects](https://learn.microsoft.com/en-us/windows/win32/api/synchapi/nf-synchapi-waitformultipleobjects). Only reaped registry handles are closed; exiting without waiting leaks them. Recognized structured exceptions map to guest signals and other exits keep the guest exit-byte layout. This is host glue, not measured PS5 ABI. Tests cover invalid handles, nonblocking waits, exit status, CPU times and competing waiters; Linux, macOS and console behavior were not tested by this change.
